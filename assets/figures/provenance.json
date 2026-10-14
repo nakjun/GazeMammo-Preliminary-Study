@@ -1,0 +1,40 @@
+{
+  "note": "Existing research visualizations copied without editing; patient-level metadata excluded.",
+  "figures": [
+    {
+      "file": "observed_gaze_sequence_642.png",
+      "source": "eda/gaze_sequence_image_642.png",
+      "description": "초기 EDA: 실제 시선 샘플의 저장 순서",
+      "sha256": "71fa7e084d097f2332ccf39b0f2381a6b9ab8bd9cc5f4c2ec38675ef8999e66c",
+      "bytes": 1186180
+    },
+    {
+      "file": "observed_predicted_grid_case73.png",
+      "source": "runs/cxr_attention_1011_full/case73_ensemble_vs_gt.png",
+      "description": "이전 비교 실험: 실제 시선, 예측 시선, grid",
+      "sha256": "ab6136f0d08454aacc9c3e85a80fe044c231afc5cde2472266e274eb89a75045",
+      "bytes": 731204
+    },
+    {
+      "file": "grid14_gaze4_correct_case.png",
+      "source": "runs/grid14_gaze_case_visualization_1013/case.png",
+      "description": "Grid14+Gaze4: CC/MLO 원영상과 실제 추출 패치",
+      "sha256": "74059b37ecc6695d5e431625462543c1e78d45198fa280c7e56d28604cc81968",
+      "bytes": 1256515
+    },
+    {
+      "file": "predicted_trajectory_proposal_case73.png",
+      "source": "runs/guided_1011_combined_seed42/best_predict_case73/trajectory.png",
+      "description": "이전 guided rollout: 영상 기반 경로·learned proposal·첫 단계 확률분포",
+      "sha256": "a1e0093609eaf4ee26ac710c2ed1404dd50b20d8be6d9eb2ccf5f7a4acf2ba66",
+      "bytes": 378168
+    },
+    {
+      "file": "proposal_guided_visits_case73.png",
+      "source": "runs/proposal_visit_1011/case73_comparison.png",
+      "description": "이전 proposal 방문 정책: seed42 사례73 경로·실제 크롭 확보 비교",
+      "sha256": "097aefdf80120d1e6baba945c4cbd674e1a6e99b8c8cb45f97137db95c247c80",
+      "bytes": 1609927
+    }
+  ]
+}
