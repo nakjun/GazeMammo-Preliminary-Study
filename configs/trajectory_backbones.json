@@ -1,0 +1,12 @@
+{
+  "backbones": ["resnet50", "densenet121", "efficientnet_b0", "convnext_tiny", "swin_t"],
+  "seed": 42,
+  "k": 16,
+  "grid_x": 24,
+  "grid_y": 48,
+  "batch_size": 32,
+  "epochs": 50,
+  "patience": 10,
+  "lr": 0.001,
+  "frozen_backbone": true
+}

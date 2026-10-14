@@ -1,0 +1,24 @@
+"""Authoritative same-config actual-image NLL and ROI14+RAWq2 evaluation."""
+import argparse,json,subprocess,sys,time
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]
+
+def main():
+    p=argparse.ArgumentParser();p.add_argument('--root',default='runs/dual_target_1011/mammo_clip_unified_runtime');p.add_argument('--device',default='cuda:0');a=p.parse_args();root=Path(a.root);root.mkdir(parents=True,exist_ok=True);config=root/'config.json';payload=json.loads(config.read_text());state_path=root/'actual_state.json';state=dict(status='running',stages=[],combined_config_sha256=payload['sha256'],compute=payload['config']['compute'],numerics=payload['config']['probability']['numerics'],goals=dict(canonical_nll_max=5.3,physical_capture_min=.85),forced_path_nll_reported=False)
+    def save():
+        temp=state_path.with_suffix('.tmp');temp.write_text(json.dumps(state,indent=2));temp.replace(state_path)
+    def stage(name,script,args):
+        cmd=[sys.executable,str(ROOT/'scripts'/script),*map(str,args)];entry=dict(name=name,command=cmd,status='running',started=time.time());state['stages'].append(entry);save()
+        with (root/f'{name}.log').open('w') as log:result=subprocess.run(cmd,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT)
+        entry.update(status='complete' if result.returncode==0 else 'failed',returncode=result.returncode,ended=time.time());save()
+        if result.returncode:raise RuntimeError(f'{name} failed: {result.returncode}')
+    try:
+        smoke=json.loads((root/'smoke64_73/status.json').read_text())
+        if smoke['state']!='complete' or smoke['config_sha256']!=payload['sha256']:raise ValueError('Currentconfig smoke prerequisite failed')
+        reuse=json.loads((root/'actual64_73_proof.json').read_text())
+        if not reuse['state_unchanged'] or reuse['config_sha256']!=payload['sha256']:raise ValueError('Directprefix/past/qreuse prerequisite')
+        repeat=json.loads((root/'same_input_repeat_proof.json').read_text())
+        if repeat['combined_config_sha256']!=payload['sha256'] or any(max(r['max_pairwise_repeated_logp_error'],r['max_future_vs_sameinput_logp_error'])>1e-5 for r in repeat['records']):raise ValueError('Sameinput empiricalrepeat prerequisite')
+        stage('actual_nll','mammo_clip_dual_output_1011.py',['--phase','nll','--config',config,'--output',root/'actual_nll','--device',a.device]);stage('actual_generation','mammo_clip_dual_output_1011.py',['--phase','generate','--config',config,'--output',root/'actual_generation','--device',a.device,'--seeds',42,43,44]);stage('actual_posthoc','evaluate_proposal_center_offset_1011.py',['--traces',root/'actual_generation/traces.jsonl','--output',root/'actual_posthoc','--baseline','DUAL_ROI14_RAW_MAMMO025','--crop-size',224]);nll=json.loads((root/'actual_nll/summary.json').read_text());metrics=json.loads((root/'actual_posthoc/metrics.json').read_text());capture=metrics['summaries']['DUAL_ROI14_RAW_MAMMO025']['actual_recall_05_step16'];state['outcome']=dict(canonical_actual_image_macro_nll=nll['canonical_legacy16_image_macro_nll'],physical_capture50=capture,nll_goal_met=nll['canonical_legacy16_image_macro_nll']<=5.3,roi_goal_met=capture>=.85,forced_path_nll='Not applicable');state['status']='complete';save()
+    except Exception as exc:state.update(status='failed',error=str(exc));save();raise
+if __name__=='__main__':main()

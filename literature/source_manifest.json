@@ -1,0 +1,44 @@
+[
+  {
+    "name": "gaa_miccai2025",
+    "url": "https://papers.miccai.org/miccai-2025/paper/1266_paper.pdf",
+    "status": "downloaded",
+    "pages": 11,
+    "sha256": "1d4e637ebf0646a172916f3d7817ff28f5545ddd4bc9f1b7c0751ed2a1529e5b"
+  },
+  {
+    "name": "gazeformer_cvpr2023",
+    "url": "https://arxiv.org/pdf/2303.15274",
+    "pages": 11,
+    "sha256": "5fa3202b34d7af88eb6587bae21f7330c8660bb6e3ac34515aec1de6ccd1319d",
+    "status": "downloaded"
+  },
+  {
+    "name": "hat_cvpr2024",
+    "url": "https://arxiv.org/pdf/2303.09383",
+    "pages": 21,
+    "sha256": "c4512e745cf44efbb62b9462f4be4c8df8e7a624a4b86712cbd47bb3daeb5996",
+    "status": "downloaded"
+  },
+  {
+    "name": "gmic_mia2021",
+    "url": "https://arxiv.org/pdf/2002.07613",
+    "pages": 20,
+    "sha256": "afd585892ca8dc3e47d00ee7980669e595a2c0897cfebf5d8d96136f61e56208",
+    "status": "downloaded"
+  },
+  {
+    "name": "glam_midl2021",
+    "url": "https://proceedings.mlr.press/v143/liu21b/liu21b.pdf",
+    "pages": 22,
+    "sha256": "bb8ff87b27603f47a6bea8e1243b0e0ae8a013cb825bebb13043823026bf724c",
+    "status": "downloaded"
+  },
+  {
+    "name": "deepgaze35vl_2026_preprint",
+    "url": "https://arxiv.org/pdf/2607.02083",
+    "pages": 29,
+    "sha256": "7562bc607b41c8cb72a1c2b7ccf6b2cb487236ce294d668e370ae58020187d42",
+    "status": "downloaded"
+  }
+]

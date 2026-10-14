@@ -1,0 +1,39 @@
+# Local datasets, patient-level manifests, outputs, and weights
+/data/
+/runs/
+/manifests/
+/results/
+/eda/
+/archive/
+/literature/code/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.dcm
+*.dicom
+*.log
+*.tmp
+
+# Local environments, bytecode, editor and agent state
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.env.*
+!.env.example
+.aws/
+.codex/
+.agents/
+.DS_Store
+
+# Downloaded reference papers / weights and detailed local cleanup ledgers
+/literature/weights/
+/literature/sources/
+/cleanup*.json
+/checkpoint_cleanup*.json
+/runs_cleanup*.json
+/literature/local_diagnostics.json
+/literature/gaze_constraint_audit.json

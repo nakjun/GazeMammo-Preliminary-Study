@@ -1,0 +1,153 @@
+{
+  "as_of": "2026-10-14",
+  "evaluation": "exploratory patient-disjoint VAL; not a SOTA or held-out TEST claim",
+  "goal": {
+    "auroc": 0.88,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "achieved": false
+  },
+  "latest_round20": {
+    "state": "paused_user_request",
+    "saved_records": 346,
+    "cohort": 2393,
+    "classifier_training_started": false
+  },
+  "completed_pilots": [
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "convnext_base",
+      "arm": "global_only",
+      "classifier_seed": 42,
+      "selected_epoch": 16,
+      "val_auroc": 0.7636924250611907,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "convnext_base",
+      "arm": "gaze8",
+      "classifier_seed": 42,
+      "selected_epoch": 16,
+      "val_auroc": 0.7607044089131887,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "convnext_base",
+      "arm": "random8",
+      "classifier_seed": 42,
+      "selected_epoch": 16,
+      "val_auroc": 0.7821926952541404,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "densenet121",
+      "arm": "global_only",
+      "classifier_seed": 42,
+      "selected_epoch": 12,
+      "val_auroc": 0.7169967258971995,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "densenet121",
+      "arm": "gaze8",
+      "classifier_seed": 42,
+      "selected_epoch": 25,
+      "val_auroc": 0.7028831177087638,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "densenet121",
+      "arm": "random8",
+      "classifier_seed": 42,
+      "selected_epoch": 15,
+      "val_auroc": 0.7596554245208049,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "resnet50",
+      "arm": "global_only",
+      "classifier_seed": 42,
+      "selected_epoch": 8,
+      "val_auroc": 0.7303792237515496,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "resnet50",
+      "arm": "gaze8",
+      "classifier_seed": 42,
+      "selected_epoch": 8,
+      "val_auroc": 0.7311421214914652,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round18_backbone_comparison_pilot42",
+      "backbone": "resnet50",
+      "arm": "random8",
+      "classifier_seed": 42,
+      "selected_epoch": 4,
+      "val_auroc": 0.7245621284846944,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "paired_feature_mean"
+    },
+    {
+      "experiment": "round19_frozen_attention_pilot42",
+      "backbone": "convnext_base",
+      "arm": "global_only",
+      "classifier_seed": 42,
+      "selected_epoch": 0,
+      "val_auroc": 0.8325439460885597,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "learned_paired_context_average"
+    },
+    {
+      "experiment": "round19_frozen_attention_pilot42",
+      "backbone": "convnext_base",
+      "arm": "gaze8",
+      "classifier_seed": 42,
+      "selected_epoch": 5,
+      "val_auroc": 0.8320035601894529,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "learned_paired_context_average"
+    },
+    {
+      "experiment": "round19_frozen_attention_pilot42",
+      "backbone": "convnext_base",
+      "arm": "random8",
+      "classifier_seed": 42,
+      "selected_epoch": 7,
+      "val_auroc": 0.8320671350011124,
+      "val_n": 356,
+      "audit_passed": true,
+      "integration": "learned_paired_context_average"
+    }
+  ]
+}

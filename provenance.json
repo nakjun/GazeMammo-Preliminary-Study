@@ -1,0 +1,12 @@
+{
+  "repository": "yankon0408/GAA-DETR-breast",
+  "revision": "9ad76f0e2d9e589fa958312be34de4c58b6c9696",
+  "downloaded_utc": "2026-10-10T07:23:39.478451+00:00",
+  "packages": {
+    "huggingface-hub": "0.36.2",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "Pillow": "12.3.0",
+    "matplotlib": "3.10.9"
+  }
+}

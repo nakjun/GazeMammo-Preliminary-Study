@@ -1,0 +1,15 @@
+{
+  "seed": 42,
+  "k": 16,
+  "crop_size": 224,
+  "min_distance": 32,
+  "methods": ["random", "grid", "observed", "whole"],
+  "aggregation": "mil",
+  "epochs": 50,
+  "patience": 10,
+  "batch_size": 32,
+  "lr": 0.001,
+  "bootstrap": 1000,
+  "encoder": "resnet50_imagenet1k_v2_frozen",
+  "evaluation": "validation_only"
+}

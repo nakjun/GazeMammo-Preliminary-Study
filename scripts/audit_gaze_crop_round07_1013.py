@@ -1,0 +1,17 @@
+"""Independent final wholeVAL metrics and matched frozen/adapt closure audit."""
+import json,sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+import numpy as np,pandas as pd,torch
+from src.official_cbis_classifier_1012 import metrics,digest
+out=Path('runs/gaze_focus_auroc88_1013/round07_crop_block_adapt_pilot42');m=json.load(open(out/'heads/manifest.json'));ext=json.load(open(out/'extraction_manifest.json'));assert m['state']==ext['state']=='complete' and ext['completed']==2393;checks=[];maxdiff={};trainseconds=0;trends={}
+for r in m['results']:
+ d=out/'heads'/r['arm']/r['variant'];h=json.load(open(d/'history.json'));trainseconds+=sum(x.get('seconds',0) for section in ['continuation_inner','continuation_fullTRAIN'] for x in h[section]);trends[r['arm']+':'+r['variant']]=h['continuation_inner'];
+ for mode in ['singleview','learned_paired_feature_average','fixed_probability_average']:
+  p=d/f'{mode}_predictions.csv';f=pd.read_csv(p);assert len(f)==356 and f.image_id.nunique()==356 and f.patient_key.nunique()==183 and np.isfinite(f.probability).all();v=metrics(f.label,f.probability)
+  for key in ['auroc','auprc','accuracy']:assert abs(v[key]-r[mode][key])<1e-12
+  checks.append(dict(arm=r['arm'],variant=r['variant'],mode=mode,sha256=digest(p),auroc=v['auroc']))
+for arm in ['imitation','lesion_aux','random']:
+ a=pd.read_csv(out/'heads'/arm/'frozen_head_continue/learned_paired_feature_average_predictions.csv');b=pd.read_csv(out/'heads'/arm/'lastblock_adapt/learned_paired_feature_average_predictions.csv');assert a.image_id.equals(b.image_id) and a.label.equals(b.label);maxdiff[arm]=float(np.abs(a.probability-b.probability).max())
+assert all(digest(p)==sha for p,sha in m['dependencies'].items());assert digest('runs/official_cbis_v2_experiment_1012/development.pt')==ext['cache_sha256'];r=dict(state='complete',target=.88,goal_met=False,classifier_seed42_only=True,results=m['results'],boundary_extract_minutes=ext['elapsed_minutes'],classifier_total_wall_minutes=m['elapsed_minutes'],timed_continuation_training_minutes=trainseconds/60,remaining_wall_includes='warmup,validation/inference,model/cache loading and IO; not separately timed',matched_probability_max_abs_diff=maxdiff,TRAIN_inner_trends=trends,audit_passed=True,prediction_csv_count=len(checks),validation_images=356,validation_patients=183,limitations=['No three-seed confirmation: best paired AUROC below .88.','All adaptation choices used TRAIN internal patients only; frozen/head architecture matched.','318 TRAIN lesion supervision belongs to upstream auxiliary trajectory.','Head warmup chosen by TRAIN internal AUROC differs from earlier VAL-selected round06.','Encoder prefix/global visual representation remains frozen; only final local CNblock+norm adapted.'],next_plan='Same ConvNeXt full-image width512/height1024 representation, existing imageOOF gaze4 crops reused. Expected global extraction CPU about40-80 minutes from previous256x512 throughput; must benchmark first. Compare global/imitation4/aux4/random4 at fixed head/pooling. No new extraction started.')
+(out/'final_report.json').write_text(json.dumps(r,indent=2));(out/'final_audit.json').write_text(json.dumps(dict(passed=True,csv=checks,matched_probability_max_abs_diff=maxdiff),indent=2));print(json.dumps(dict(extract_minutes=r['boundary_extract_minutes'],wall_minutes=r['classifier_total_wall_minutes'],timed_train_minutes=trainseconds/60,maxdiff=maxdiff,trends=trends)),flush=True)

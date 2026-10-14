@@ -1,0 +1,36 @@
+"""Diagnostic only: fixed canonical targets and observed-prefix region mass; no fit."""
+import argparse,json,sys,math
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT));sys.path.insert(0,str(ROOT/'scripts'))
+import torch,numpy as np
+from train_attention_1011 import digest
+from gaze_nll_adaptation_1011 import routing
+
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--output',default='runs/dual_target_1011/gaze_boundary_region_audit');a=p.parse_args();torch.set_num_threads(4);out=Path(a.output);out.mkdir(parents=True,exist_ok=False);paths=[ROOT/'runs/dual_target_1011/gaze_mdn_product_seed42/corrected_raw_cache.pt',ROOT/'runs/dual_target_1011/dino/gaze_augmented_teacherkl_seed42/best_raw_cache.pt'];payloads=[torch.load(x,weights_only=False) for x in paths];sources=[{int(r['image_id']):r for r in x['records']} for x in payloads];allowed={int(r['image_id']):r for r in routing()}
+ if any(len(s)!=505 or set(s)!=set(allowed) for s in sources):raise ValueError('Exact505 cohort required')
+ names=['left_top','interior_top','right_top','left_interior','interior_interior','right_interior','left_bottom','interior_bottom','right_bottom'];ids=torch.arange(1152);x=ids%24;y=ids//24;xr=torch.where(x==0,0,torch.where(x==23,2,1));yr=torch.where(y==0,0,torch.where(y==47,2,1));cellregion=yr*3+xr;regionmask=torch.nn.functional.one_hot(cellregion,9).float();images=[];pointrows=[]
+ for identity,first in sources[0].items():
+  second=sources[1][identity];route=allowed[identity]
+  for record in [first,second]:
+   if record['patient_key']!=route['patient_key'] or record['split']!=route['split'] or record['split'] not in ['train','val']:raise ValueError('Protected routing violation')
+   if not torch.isfinite(record['raw_logp']).all() or not torch.allclose(record['raw_logp'].exp().sum(-1),torch.ones(16),atol=1e-5):raise ValueError('Invalid distribution')
+  for field in ['coords','loss_mask','target']:
+   if not torch.equal(first[field],second[field]):raise ValueError('Canonical source alignment mismatch')
+  coords=first['coords'];mask=first['loss_mask'].bool();target=first['target'];computed=(coords[:,1]*48).long().clamp(0,47)*24+(coords[:,0]*24).long().clamp(0,23)
+  if not torch.equal(target,computed):raise ValueError('Unchanged target protocol mismatch')
+  q=.75*first['raw_logp'].exp()+.25*second['raw_logp'].exp();mass=q@regionmask;nll=-q.log().gather(1,target[:,None]).squeeze(1);tx=target%24;ty=target//24;boundary=(tx==0)|(tx==23)|(ty==0)|(ty==47);corner=((tx==0)|(tx==23))&((ty==0)|(ty==47));regions=cellregion[target];n=int(mask.sum());row=dict(image_id=identity,patient_key=route['patient_key'],split=route['split'],n_valid=n,nll=float(nll[mask].mean()),boundary_fraction=float(boundary[mask].float().mean()),corner_fraction=float(corner[mask].float().mean()),boundary_nll_contribution=float((nll*boundary*mask).sum()/n),interior_nll_contribution=float((nll*~boundary*mask).sum()/n),boundary_loss_sum=float((nll*boundary*mask).sum()),interior_loss_sum=float((nll*~boundary*mask).sum()),boundary_count=int((boundary&mask).sum()),interior_count=int((~boundary&mask).sum()),region_target_frequency=[float(((regions==k)&mask).sum()/n) for k in range(9)],conditional_region_mass=mass[mask].mean(0).tolist(),image_only_prior_mass=mass[0].tolist(),coordinate_limit_frequencies={label:float((test&mask).sum()/n) for label,test in [('x_eq0',coords[:,0]==0),('x_eq1',coords[:,0]==1),('y_eq0',coords[:,1]==0),('y_eq1',coords[:,1]==1),('any_exact_limit',(coords==0).any(1)|(coords==1).any(1))]});images.append(row)
+  for t in range(16):
+   if not mask[t]:continue
+   pointrows.append(dict(image_id=identity,patient_key=route['patient_key'],split=route['split'],step=t,target_region=int(regions[t]),previous_region=int(regions[t-1]) if t and mask[t-1] else None,image_weight=1/n,nll=float(nll[t]),boundary=bool(boundary[t]),corner=bool(corner[t]),region_mass=mass[t].tolist()))
+ summary={}
+ for split in ['train','val']:
+  group=[r for r in images if r['split']==split];points=[r for r in pointrows if r['split']==split];transition=np.zeros((9,9));predicted=np.zeros((9,9));den=np.zeros(9);step=[]
+  for r in points:
+   if r['previous_region'] is not None:
+    k=r['previous_region'];weight=r['image_weight'];transition[k,r['target_region']]+=weight;predicted[k]+=weight*np.asarray(r['region_mass']);den[k]+=weight
+  for t in range(16):
+   same=[r for r in points if r['step']==t];pairs=[r for r in same if r['previous_region'] is not None];step.append(dict(step=t,images=len(same),nll=np.mean([r['nll'] for r in same]),boundary_frequency=np.mean([r['boundary'] for r in same]),corner_frequency=np.mean([r['corner'] for r in same]),region_target_frequency=[np.mean([r['target_region']==k for r in same]) for k in range(9)],region_mass=np.mean([r['region_mass'] for r in same],axis=0).tolist(),region_persistence=np.mean([r['target_region']==r['previous_region'] for r in pairs]) if pairs else None,predicted_previous_region_mass=np.mean([r['region_mass'][r['previous_region']] for r in pairs]) if pairs else None))
+  summary[split]=dict(images=len(group),patients=len({r['patient_key'] for r in group}),valid_points=len(points),macro_nll=np.mean([r['nll'] for r in group]),boundary_frequency=np.mean([r['boundary_fraction'] for r in group]),corner_frequency=np.mean([r['corner_fraction'] for r in group]),boundary_nll_contribution=np.mean([r['boundary_nll_contribution'] for r in group]),interior_nll_contribution=np.mean([r['interior_nll_contribution'] for r in group]),boundary_subset_nll_micro=sum(r['boundary_loss_sum'] for r in group)/sum(r['boundary_count'] for r in group),interior_subset_nll_micro=sum(r['interior_loss_sum'] for r in group)/sum(r['interior_count'] for r in group),region_target_frequency=np.mean([r['region_target_frequency'] for r in group],axis=0).tolist(),conditional_region_mass=np.mean([r['conditional_region_mass'] for r in group],axis=0).tolist(),image_only_prior_mass=np.mean([r['image_only_prior_mass'] for r in group],axis=0).tolist(),coordinate_limit_frequencies={k:np.mean([r['coordinate_limit_frequencies'][k] for r in group]) for k in group[0]['coordinate_limit_frequencies']},transition_probability=(transition/np.maximum(den[:,None],1e-30)).tolist(),conditional_predicted_region_mass=(predicted/np.maximum(den[:,None],1e-30)).tolist(),previous_region_support_image_weight=den.tolist(),per_step=step)
+ (out/'metrics.json').write_text(json.dumps(dict(region_names=names,splits=summary,source_sha256={str(p):digest(p) for p in paths},protected_route_manifest_sha256=digest(ROOT/'manifests/all.csv'),canonical_val_manifest_sha256=digest(ROOT/'manifests/trajectory.csv'),protocol='diagnostic only; unchanged fixed canonical targets; current q=.75MDN+.25KL-DINO; exact limits are matches not proven clipping; no target-gated inference or fitted parameters'),indent=2));(out/'per_image.json').write_text(json.dumps(images,indent=2));(out/'per_step_points.json').write_text(json.dumps(pointrows));print(json.dumps({k:{x:v[x] for x in ['macro_nll','boundary_frequency','corner_frequency','boundary_nll_contribution','interior_nll_contribution','coordinate_limit_frequencies']} for k,v in summary.items()}))
+if __name__=='__main__':main()
